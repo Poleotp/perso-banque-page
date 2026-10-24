@@ -21,7 +21,7 @@
 <script>
 // Tout est enfermé dans une fonction : l'appli chargée ensuite déclare les mêmes noms (TOKEN_KEY…).
 (() => {
-const APP = 'https://api.github.com/repos/Poleotp/balancecheck/contents/src/index.html?ref=main';
+const APP = 'https://api.github.com/repos/Poleotp/perso-banque/contents/src/index.html?ref=main';
 const TOKEN_KEY = 'balancecheck.ghtoken', CACHE_KEY = 'balancecheck.apphtml';
 const get = k => { try { return localStorage.getItem(k); } catch { return null; } };
 const set = (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch {} };
@@ -32,7 +32,7 @@ function show(html) { document.open(); document.write(html); document.close(); }
 async function start() {
   let token = get(TOKEN_KEY);
   if (!token) {
-    token = (prompt('Colle ton jeton GitHub (lecture seule du dépôt balancecheck) :') || '').trim();
+    token = (prompt('Colle ton jeton GitHub (lecture seule du dépôt perso-banque) :') || '').trim();
     if (!token) return msg('Jeton GitHub manquant.', true);
     set(TOKEN_KEY, token);
   }
@@ -41,7 +41,7 @@ async function start() {
       headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github.raw+json' } });
     if (res.status === 401 || res.status === 403 || res.status === 404) {
       set(TOKEN_KEY, null);
-      return msg('Jeton GitHub refusé, expiré ou sans accès au dépôt balancecheck.', true);
+      return msg('Jeton GitHub refusé, expiré ou sans accès au dépôt perso-banque.', true);
     }
     if (!res.ok) throw new Error(`GitHub ${res.status}`);
     const html = await res.text();
