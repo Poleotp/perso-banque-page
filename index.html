@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>État des comptes</title>
+<style>
+  body { background: #000; color: #fff; font-family: system-ui, -apple-system, sans-serif; padding: 32px 16px; margin: 0; }
+  p { color: #aaa; }
+  button { background: #111; color: #fff; border: 1px solid #333; border-radius: 10px; padding: 10px 16px; font: inherit; }
+</style>
+</head>
+<body>
+<!-- Page publique de lancement de BalanceCheck : elle ne contient AUCUNE donnée.
+     Elle charge l'appli depuis le dépôt privé avec un jeton GitHub en lecture seule gardé sur cet appareil. -->
+<h1>État des comptes</h1>
+<p id="msg">Chargement…</p>
+<button id="retry" hidden>Réessayer</button>
+<script>
+const APP = 'https://api.github.com/repos/Poleotp/balancecheck/contents/src/index.html?ref=main';
+const TOKEN_KEY = 'balancecheck.ghtoken', CACHE_KEY = 'balancecheck.apphtml';
+const get = k => { try { return localStorage.getItem(k); } catch { return null; } };
+const set = (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch {} };
+const msg = (t, retry) => { document.getElementById('msg').textContent = t; document.getElementById('retry').hidden = !retry; };
+
+function show(html) { document.open(); document.write(html); document.close(); }
+
+async function start() {
+  let token = get(TOKEN_KEY);
+  if (!token) {
+    token = (prompt('Colle ton jeton GitHub (lecture seule du dépôt balancecheck) :') || '').trim();
+    if (!token) return msg('Jeton GitHub manquant.', true);
+    set(TOKEN_KEY, token);
+  }
+  try {
+    const res = await fetch(APP, { cache: 'no-store', signal: AbortSignal.timeout(15000),
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github.raw+json' } });
+    if (res.status === 401 || res.status === 403 || res.status === 404) {
+      set(TOKEN_KEY, null);
+      return msg('Jeton GitHub refusé, expiré ou sans accès au dépôt balancecheck.', true);
+    }
+    if (!res.ok) throw new Error(`GitHub ${res.status}`);
+    const html = await res.text();
+    set(CACHE_KEY, html);
+    show(html);
+  } catch (e) {
+    // Hors ligne : on rouvre la dernière version de l'appli gardée sur cet appareil.
+    const cached = get(CACHE_KEY);
+    if (cached) return show(cached);
+    msg('Impossible de joindre GitHub : ' + e.message, true);
+  }
+}
+
+document.getElementById('retry').onclick = start;
+start();
+</script>
+</body>
+</html>
