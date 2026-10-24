@@ -19,6 +19,8 @@
 <p id="msg">Chargement…</p>
 <button id="retry" hidden>Réessayer</button>
 <script>
+// Tout est enfermé dans une fonction : l'appli chargée ensuite déclare les mêmes noms (TOKEN_KEY…).
+(() => {
 const APP = 'https://api.github.com/repos/Poleotp/balancecheck/contents/src/index.html?ref=main';
 const TOKEN_KEY = 'balancecheck.ghtoken', CACHE_KEY = 'balancecheck.apphtml';
 const get = k => { try { return localStorage.getItem(k); } catch { return null; } };
@@ -55,6 +57,7 @@ async function start() {
 
 document.getElementById('retry').onclick = start;
 start();
+})();
 </script>
 </body>
 </html>
